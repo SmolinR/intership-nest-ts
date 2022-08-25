@@ -45,16 +45,64 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## App features
+## Users
 
 ```bash
 # Create user
 curl --location --request POST 'localhost:3000/v1/users/create' \
-    --header 'Content-Type: application/json' \
-    --data-raw '{
-        "email": "test@gmail.com",
-        "fullName": "Test User"
-    }'
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'email=nestuser@gmail.com' \
+--data-urlencode 'name=nest' \
+--data-urlencode 'password=123123123'
+
+# Get users
+curl --location --request GET 'localhost:3000/v1/users' \
+--header 'Authorization: Access Token'
+
+# Get own profile
+curl --location --request GET 'localhost:3000/v1/users/me' \
+--header 'Authorization: Access Token'
+
+# Get user by id
+curl --location --request GET 'localhost:3000/v1/users/user`s ObjectId' \
+
+# Update user
+curl --location --request PUT 'localhost:3000/v1/users/update' \
+--header 'Authorization: Access Token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'id=user`s id' \
+--data-urlencode 'name=nestupdatedname'
+```
+
+## Auth
+
+```bash
+#Sign-up
+curl --location --request POST 'localhost:3000/v1/auth/sign-up' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'email=nestuser@gmail.com' \
+--data-urlencode 'name=nest' \
+--data-urlencode 'password=123123123'
+
+#Sign-in
+curl --location --request POST 'localhost:3000/v1/auth/sign-in' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'email=nestuser@gmail.com' \
+--data-urlencode 'name=nest' \
+--data-urlencode 'password=123123123' \
+
+#Get refresh by user id
+curl --location --request GET 'localhost:3000/v1/auth/refresh/user`s id' \
+
+#Refresh tokens
+curl --location --request POST 'localhost:3000/v1/auth/refresh' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'refreshToken=user`s refresh token' \
+--data-urlencode 'userId=user`s id'
+
+#Logout
+curl --location --request DELETE 'localhost:3000/v1/auth/logout' \
+--header 'Authorization: AccessToken'
 ```
 
 ## Test

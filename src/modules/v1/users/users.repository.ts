@@ -21,7 +21,7 @@ export default class UsersRepository {
     return this.usersModel.find({}, { password: 0 }).exec();
   }
   public getById(id: Types.ObjectId): Promise<User | null> {
-    return this.usersModel.findById(id).exec();
+    return this.usersModel.findById(id, { password: 0 }).exec();
   }
 
   public getByIdAndUpdate({
