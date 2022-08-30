@@ -15,7 +15,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .setContact('SmolinR', 'https://github.com/SmolinR', 'rslnsmln@gmail.com')
     .addServer('http://localhost:3000')
-    .addServer('https://intership-nest.herokuapp.com/')
+    .addServer('https://nest-intership.herokuapp.com/')
     .addBearerAuth()
     .build();
   const document: OpenAPIObject = SwaggerModule.createDocument(app, config);
