@@ -29,7 +29,23 @@ import { Types } from 'mongoose';
 import AuthBearer from 'src/decorators/access-bearer.decorator';
 import { ConfigService } from '@nestjs/config';
 import WrapResponseInterceptor from '../../../interceptors/wrap-response.interceptor';
+import { SignInDto } from './dto/sign-in.dto';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiExtraModels,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+  getSchemaPath,
+} from '@nestjs/swagger';
 
+@ApiTags('Auth')
+@ApiExtraModels(User)
+@ApiExtraModels(Token)
 @UseInterceptors(WrapResponseInterceptor)
 @Controller()
 export class AuthController {
@@ -40,18 +56,116 @@ export class AuthController {
   ) {}
 
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({
+    status: 201,
+    description: 'Returns if user sign-up is success',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          $ref: getSchemaPath(User),
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    status: 400,
+    description:
+      'Returns if creation fails and a validation error is encountered',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'BadRequestException',
+        message: 'Bad Request Exception',
+        messages: [
+          'email must be an email',
+          'password must be longer than or equal to 8 characters',
+        ],
+      },
+    },
+  })
   @Post('sign-up')
   async signUp(@Body() user: SignUpDto): Promise<User> {
     return this.usersService.create(user);
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    status: 200,
+    description: 'Returns if user sign-in is success',
+    schema: {
+      type: 'object',
+      example: {
+        data: {
+          accessToken: 'string',
+          refreshToken: 'string',
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    status: 401,
+    description: 'Returns if user unauthorized',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'UnauthorizedException',
+        message: 'Unauthorized',
+      },
+    },
+  })
+  @ApiForbiddenResponse({
+    status: 403,
+    description: 'Returns if user not found in base',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'ForbiddenException',
+        message: 'User not found',
+      },
+    },
+  })
   @UseGuards(LocalAuthGuard)
   @Post('sign-in')
-  async signIn(@Request() req: ExpressRequest): Promise<JwtDto> {
-    return this.authService.signIn(req.user as User);
+  async signIn(@Body() user: SignInDto): Promise<JwtDto> {
+    return this.authService.signIn(user as User);
   }
 
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({
+    status: 200,
+    description: 'Returns if refresh was found by user id',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          $ref: getSchemaPath(Token),
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    status: 400,
+    description: 'Returns if ObjectId parser not found expected value',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'BadRequestException',
+        message: 'Request failed (expected ObjectId)',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    status: 404,
+    description: 'Returns if user not found',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'NotFoundException',
+        message: 'User not found!',
+      },
+    },
+  })
   @Get('refresh/:id')
   async getRefresh(
     @Param('id', ParseObjectIdPipe) userId: Types.ObjectId,
@@ -60,6 +174,53 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    status: 200,
+    description: 'Returns if token and user`s id was found and correct',
+    schema: {
+      type: 'object',
+      example: {
+        data: {
+          accessToken: 'string',
+          refreshToken: 'string',
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    status: 400,
+    description: 'Returns if validation error is encountered',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'BadRequestException',
+        message: 'Bad Request Exception',
+        messages: ['userId should not be empty'],
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    status: 401,
+    description: 'Returns if user not found',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'UnauthorizedException',
+        message: 'Incorrect id, unauthorized',
+      },
+    },
+  })
+  @ApiForbiddenResponse({
+    status: 403,
+    description: 'Returns if token is invalid',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'ForbiddenException',
+        message: 'Invalid token',
+      },
+    },
+  })
   @Post('refresh')
   async refreshToken(@Body() data: RefreshTokenDto): Promise<JwtDto | null> {
     const user: IVerifiedUser = await this.authService.decodeToken(data);
@@ -92,6 +253,27 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    status: 200,
+    description: 'Returns if logging out is success',
+    schema: {
+      type: 'object',
+      example: {
+        data: 'Logged out',
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    status: 401,
+    description: 'Returns if access token is not provided',
+    schema: {
+      type: 'object',
+      example: {
+        error: 'UnauthorizedException',
+        message: 'Access Token is not provided',
+      },
+    },
+  })
   @Delete('logout')
   public async logout(
     @AuthBearer() accessToken: string,

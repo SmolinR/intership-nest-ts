@@ -1,8 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ApiProperty } from '@nestjs/swagger';
 import { Document, Schema as MongoSchema } from 'mongoose';
 
 @Schema()
 export class User {
+  @ApiProperty()
   @Prop({
     required: true,
     unique: true,
@@ -10,9 +12,11 @@ export class User {
   })
   email: string;
 
+  @ApiProperty()
   @Prop()
   name: string;
 
+  @ApiProperty()
   @Prop()
   password: string;
 }

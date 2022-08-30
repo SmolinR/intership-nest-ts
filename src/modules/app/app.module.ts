@@ -10,9 +10,7 @@ import { AppService } from './app.service';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot('mongodb://localhost:27017', {
-      dbName: 'nestdb',
-    }),
+    MongooseModule.forRoot(process.env.MONGO_URL),
     V1Module,
   ],
   controllers: [AppController],

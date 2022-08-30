@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import {
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -74,7 +75,7 @@ export class AuthService {
     const user: UserDocument = await this.usersService.getByEmail(email);
 
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      throw new ForbiddenException('User not found');
     }
 
     const comparedPassword: boolean = await this.verifyByPassword(

@@ -2,7 +2,7 @@ import * as bcrypt from 'bcrypt';
 import UserRepository from './users.repository';
 
 import { CreateUserDto } from './dto/create-user.dto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Types, UpdateWriteOpResult } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -25,14 +25,26 @@ export class UsersService {
     return this.userRepository.getAll();
   }
 
-  public getById(id: Types.ObjectId): Promise<User | null> {
-    return this.userRepository.getById(id);
+  public async getById(id: Types.ObjectId): Promise<User | null> {
+    const user: User | null = await this.userRepository.getById(id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 
-  public getByIdAndUpdate(
+  public async getByIdAndUpdate(
     data: UpdateUserDto,
   ): Promise<UpdateWriteOpResult | null> {
-    return this.userRepository.getByIdAndUpdate(data);
+    const result: UpdateWriteOpResult | null =
+      await this.userRepository.getByIdAndUpdate(data);
+
+    if (result.modifiedCount === 0) {
+      throw new NotFoundException('User not found');
+    }
+    return result;
   }
 
   public getByEmail(email: string): Promise<UserDocument | null> {
